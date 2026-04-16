@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code &mdash; Skill Creation &amp; Google Script Docs</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #181a20;
+      --surface-2: #1e2028;
+      --border: #2a2d38;
+      --text: #e2e4eb;
+      --text-dim: #8b8fa3;
+      --accent: #d97706;
+      --accent-glow: rgba(217, 119, 6, .15);
+      --code-bg: #13141a;
+      --green: #22c55e;
+      --blue: #3b82f6;
+      --purple: #a855f7;
+      --red: #ef4444;
+      --radius: 10px;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .hero {
+      background: linear-gradient(135deg, #1a1510 0%, #0f1117 50%, #0f1520 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 48px 32px 36px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-glow);
+      border: 1px solid rgba(217,119,6,.3);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p { color: var(--text-dim); font-size: 15px; max-width: 600px; margin: 0 auto; }
+
+    /* ── Tab Bar ── */
+    .tab-bar {
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font: 600 14px var(--font);
+      padding: 16px 24px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); background: rgba(255,255,255,.03); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-btn .tab-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--border);
+      font-size: 11px;
+      margin-right: 8px;
+      color: var(--text-dim);
+    }
+    .tab-btn.active .tab-num { background: var(--accent); color: #000; }
+
+    /* ── Tab Content ── */
+    .tab-content { display: none; padding: 40px 24px 80px; max-width: 960px; margin: 0 auto; }
+    .tab-content.active { display: block; }
+
+    /* ── Presentation Tab ── */
+    .slides-wrapper { max-width: 1100px; margin: 0 auto; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .card-icon.orange { background: rgba(217,119,6,.15); }
+    .card-icon.blue   { background: rgba(59,130,246,.15); }
+    .card-icon.green  { background: rgba(34,197,94,.15); }
+    .card-icon.purple { background: rgba(168,85,247,.15); }
+    .card-icon.red    { background: rgba(239,68,68,.15); }
+
+    .card h2 { font-size: 18px; font-weight: 700; }
+    .card h3 { font-size: 15px; font-weight: 600; color: var(--accent); margin: 20px 0 10px; }
+
+    p, li { font-size: 14px; color: var(--text-dim); }
+    p + p { margin-top: 10px; }
+    ul, ol { padding-left: 22px; margin: 8px 0; }
+    li { margin-bottom: 6px; }
+    li strong { color: var(--text); }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Code Blocks ── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 12px 0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    code { font-family: var(--mono); font-size: 13px; }
+    p code, li code {
+      background: rgba(255,255,255,.06);
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: var(--accent);
+      font-size: 12.5px;
+    }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; margin: 12px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      background: rgba(217,119,6,.08);
+      color: var(--accent);
+      text-align: left;
+      font-weight: 600;
+      padding: 10px 14px;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    tr:hover td { background: rgba(255,255,255,.02); }
+    td code {
+      background: rgba(255,255,255,.06);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 12px;
+      color: var(--green);
+    }
+
+    /* ── Steps ── */
+    .step {
+      display: flex;
+      gap: 16px;
+      margin: 16px 0;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-body { flex: 1; }
+    .step-body p { margin: 0; }
+
+    /* ── Alerts ── */
+    .alert {
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 14px 0;
+      font-size: 13px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .alert-info { background: rgba(59,130,246,.08); border-left: 3px solid var(--blue); }
+    .alert-warn { background: rgba(217,119,6,.08); border-left: 3px solid var(--accent); }
+    .alert-danger { background: rgba(239,68,68,.08); border-left: 3px solid var(--red); }
+    .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Slide (Presentation) ── */
+    .slide {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+    .slide-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+    .slide-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .slide-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .slide-body { padding: 28px; }
+    .slide-body h2 { font-size: 22px; margin-bottom: 16px; color: #fff; }
+    .slide-body h3 { font-size: 16px; margin-top: 18px; margin-bottom: 8px; color: var(--accent); }
+
+    /* ── Filename label ── */
+    .file-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(34,197,94,.1);
+      border: 1px solid rgba(34,197,94,.2);
+      color: var(--green);
+      font: 600 12px var(--mono);
+      padding: 4px 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    /* ── Divider ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .hero { padding: 32px 18px 24px; }
+      .hero h1 { font-size: 1.5rem; }
+      .tab-btn { padding: 12px 14px; font-size: 13px; }
+      .tab-content { padding: 24px 14px 60px; }
+      .card { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header class="hero">
+  <div class="hero-badge">AI Integration Workshop</div>
+  <h1>Skill Creation <span>&amp;</span> Google Script Docs</h1>
+  <p>Interactive exercise for building a data-cleaning skill, Google Apps Script implementation guide, and documentation presentation.</p>
+</header>
+
+<!-- ═══════════════ TAB BAR ═══════════════ -->
+<nav class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab(5, this)">
+    <span class="tab-num">1</span>Summary / Output
+  </button>
+  <button class="tab-btn" onclick="switchTab(0, this)">
+    <span class="tab-num">2</span>CSV Source List
+  </button>
+  <button class="tab-btn" onclick="switchTab(1, this)">
+    <span class="tab-num">3</span>Skill Creation
+  </button>
+  <button class="tab-btn" onclick="switchTab(2, this)">
+    <span class="tab-num">4</span>Google Script
+  </button>
+  <button class="tab-btn" onclick="switchTab(3, this)">
+    <span class="tab-num">5</span>Prompt Generation
+  </button>
+  <button class="tab-btn" onclick="switchTab(4, this)">
+    <span class="tab-num">6</span>Documentation
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB 2 — SKILL CREATION EXERCISE (Claude Website)
+     ═══════════════════════════════════════════════════ -->
+<section class="tab-content" id="tab-1">
+
+  <!-- Intro -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon orange">&#x1F3AF;</div>
+      <h2>Exercise: Create a data-cleaning.md Using Claude</h2>
+    </div>
+    <p>In this exercise you will use the <strong>free Claude website</strong> (<a href="https://claude.ai" target="_blank">claude.ai</a>) to generate a reusable <code>data-cleaning.md</code> instruction file. You will prompt Claude to write the file for you, then download and save it.</p>
+    <div class="alert alert-info">
+      <span class="alert-icon">&#x1F4A1;</span>
+      <span><strong>Requirement:</strong> A free Claude account at <a href="https://claude.ai" target="_blank">claude.ai</a>. No paid plan needed.</span>
+    </div>
+  </div>
+
+  <!-- Objective -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon blue">&#x1F4CB;</div>
+      <h2>Objective</h2>
+    </div>
+    <p>Use the Claude website to generate a Markdown file called <code>data-cleaning.md</code> that serves as a reusable instruction set for cleaning media monitoring datasets. The file should cover:</p>
+    <ul>
+      <li>Removing duplicate rows based on URL or headline</li>
+      <li>Filtering out rows containing unwanted keywords</li>
+      <li>Enriching date columns (extract Month, Day, Year)</li>
+      <li>Outputting a cleaned file ready for analysis</li>
+    </ul>
+  </div>
+
+  <!-- Step-by-step -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon green">&#x1F6E0;</div>
+      <h2>Step-by-Step Instructions</h2>
+    </div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <p><strong>Go to the Claude website</strong></p>
+        <p>Open your browser and navigate to <a href="https://claude.ai" target="_blank">claude.ai</a>. Log in with your free account (or create one).</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <p><strong>Start a new conversation</strong></p>
+        <p>Click <strong>"New chat"</strong> to begin a fresh conversation with Claude.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <p><strong>Enter the following prompt</strong></p>
+        <p>Copy and paste this prompt into the chat box:</p>
+        <div class="file-label">&#x1F4CB; Prompt to Copy</div>
+<pre><code>Create a Markdown file called data-cleaning.md that serves as a
+reusable instruction guide for cleaning media monitoring CSV/Excel
+datasets. The file should include:
+
+1. **Purpose** &mdash; Explain that this is for cleaning raw media
+   monitoring data
+
+2. **Input Requirements** &mdash; Describe expected columns:
+   Date, Headline, URL, Publication, Content
+
+3. **Cleaning Steps:**
+   - Duplicate Removal: deduplicate by URL (fallback to Headline)
+   - Keyword Filtering: remove rows with user-specified keywords
+     (case-insensitive)
+   - Date Enrichment: parse the Date column and add Month, Day,
+     Year columns
+
+4. **Output** &mdash; Save as a new file with _cleaned suffix,
+   include a summary of changes
+
+5. **Rules** &mdash; Never modify the original file, preserve
+   column order, handle missing Date column gracefully
+
+Format it as a clean, well-structured Markdown document that
+someone could follow as step-by-step instructions. Output the
+full file content inside a code block.</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <p><strong>Review Claude's output</strong></p>
+        <p>Claude will generate the full Markdown content. Review it and ask follow-up questions if needed, for example:</p>
+        <ul>
+          <li><em>"Add a section for handling encoding issues in CSV files"</em></li>
+          <li><em>"Include an example of the expected output summary format"</em></li>
+          <li><em>"Make the keyword filtering section more detailed"</em></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <p><strong>Save the file</strong></p>
+        <p>Once you are happy with the output:</p>
+        <ol>
+          <li>Click the <strong>Copy</strong> button on the code block</li>
+          <li>Open any text editor (Notepad, VS Code, etc.)</li>
+          <li>Paste the content and save as <code>data-cleaning.md</code></li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <p><strong>Test it</strong></p>
+        <p>Start a new Claude chat, upload a sample CSV, and paste the contents of your <code>data-cleaning.md</code> as instructions. Verify that Claude follows the cleaning steps correctly.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expected Output -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon purple">&#x2728;</div>
+      <h2>Expected Output (Reference)</h2>
+    </div>
+    <p>Your generated <code>data-cleaning.md</code> should look similar to this:</p>
+    <div class="file-label">&#x1F4C4; data-cleaning.md</div>
+<pre><code># Data Cleaning Instructions
+
+## Purpose
+Clean raw media monitoring datasets by removing duplicates,
+filtering unwanted keyword rows, and enriching date columns.
+
+## Input Requirements
+- File format: CSV or Excel (.xlsx)
+- Expected columns: Date, Headline, URL, Publication, Content
+- Additional columns are preserved as-is
+
+## Cleaning Steps
+
+### 1. Duplicate Removal
+- Primary key: **URL** column
+- Fallback: **Headline** column (if URL is missing)
+- Keep the first occurrence; remove subsequent duplicates
+- Report: "Removed X duplicate rows"
+
+### 2. Keyword Filtering
+- Ask the user for a list of keywords to exclude
+- Check Headline and Content columns (case-insensitive)
+- Remove any row that contains an excluded keyword
+- Report: "Filtered X rows matching excluded keywords"
+
+### 3. Date Enrichment
+- Auto-detect the date column (Date, Published, Pub Date)
+- Parse into YYYY-MM-DD format
+- Add new columns at the end: Month, Day, Year
+- Supported formats: MM/DD/YYYY, DD-Mon-YYYY, ISO 8601
+
+## Output
+- Save as: [original_filename]_cleaned.[ext]
+- Print summary: original rows, duplicates removed,
+  rows filtered, final row count
+
+## Rules
+- Never modify the original file
+- Preserve all original columns in their original order
+- New columns (Month, Day, Year) go at the end
+- If no Date column exists, skip enrichment and notify user</code></pre>
+  </div>
+
+  <!-- Tips -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon red">&#x1F4AC;</div>
+      <h2>Tips for Better Results</h2>
+    </div>
+    <ul>
+      <li><strong>Be specific</strong> &mdash; the more detail you give Claude, the better the output</li>
+      <li><strong>Iterate</strong> &mdash; ask Claude to revise sections that don't match your needs</li>
+      <li><strong>Add examples</strong> &mdash; ask Claude to include sample input/output for each step</li>
+      <li><strong>Test with real data</strong> &mdash; upload an actual CSV in a follow-up chat to verify the instructions work</li>
+      <li><strong>Version your file</strong> &mdash; save improved versions as <code>data-cleaning-v2.md</code>, etc.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB 3 — GOOGLE SCRIPT EXERCISE
+     ═══════════════════════════════════════════════════ -->
+<section class="tab-content" id="tab-2">
+
+  <!-- Intro -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon blue">&#x26A1;</div>
+      <h2>Exercise: Google Apps Script &mdash; AI Integration Setup</h2>
+    </div>
+    <p>In this hands-on exercise, you will copy-paste the DeepSeek AI integration scripts into your own Google Sheet, customize the configuration, and verify the custom menu appears in your spreadsheet.</p>
+    <div class="alert alert-info">
+      <span class="alert-icon">&#x1F4A1;</span>
+      <span><strong>Requirements:</strong> A Google account, a Google Sheet, and a DeepSeek API key. You will also need your own Google Doc IDs for the system prompts.</span>
+    </div>
+  </div>
+
+  <!-- What You'll Build -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon green">&#x1F3AF;</div>
+      <h2>What You'll Build</h2>
+    </div>
+    <p>By the end of this exercise, your Google Sheet will have:</p>
+    <ul>
+      <li>A custom <strong>"Prompt Tools"</strong> menu in the menu bar</li>
+      <li>Three AI-powered cell functions: <code>=sentimentTagger()</code>, <code>=summarizer()</code>, <code>=categoryTagger()</code></li>
+      <li>A <strong>Freeze</strong> function to lock AI results and stop re-running formulas</li>
+      <li>Your own customized daily limit and prompt document IDs</li>
+    </ul>
+  </div>
+
+  <!-- PART A: Main Script -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon orange">&#x1F4CB;</div>
+      <h2>Part A &mdash; Copy the Main Script (aiIntegration.gs)</h2>
+    </div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <p><strong>Open your Google Sheet</strong></p>
+        <p>Go to <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> and open an existing sheet or create a new one.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <p><strong>Open the Apps Script editor</strong></p>
+        <p>Click <strong>Extensions &gt; Apps Script</strong>. This opens the script editor in a new tab.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <p><strong>Clear the default code</strong></p>
+        <p>Select all the default code in <code>Code.gs</code> and delete it.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <p><strong>Copy &amp; paste the code below</strong> into the empty <code>Code.gs</code> file:</p>
+        <div class="file-label">&#x1F4C4; Code.gs &mdash; Main Script (copy this entire block)</div>
+<pre><code>const DS_CONFIG1 = {
+    DAILY_REQUEST_LIMIT: 500,
+    API_ENDPOINT: 'https://api.deepseek.com/v1/chat/completions',
+    MODEL: 'deepseek-chat',
+    MAX_TOKENS: 4096,
+    TEMPERATURE: 0.0,
+    REQUEST_RETRIES: 2,
+    REQUEST_TIMEOUT_MS: 30000,
+    PROMPT_DOC_IDS: {
+        sentiment: '1JP6WecOtrxfHRbCZK6ROacEFRQaIjfPGENfBUb8IM1M',
+        summary: '1kXMZSSrPNx0coqpzqtkzVmGdCfpzJlbUpzfQfR9Hp7M',
+        category: '15c5Xu3wEerypXUGgfclGAodAZg8pJdhyieN1TS9iS5Q'
+    }
+};
+
+function setupCredentials(apiKey) {
+    const key = (apiKey || '').toString().trim();
+    if (!key) {
+        throw new Error('Please provide an API key. Example: setupCredentials("sk-...")');
+    }
+    PropertiesService.getScriptProperties().setProperty('DS_API_KEY', key);
+    return 'API key saved successfully.';
+}
+
+function setApiKeyFromPrompt() {
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.prompt(
+        'Set DeepSeek API Key',
+        'Paste your API key (it will be saved in Script Properties):',
+        ui.ButtonSet.OK_CANCEL
+    );
+    if (response.getSelectedButton() !== ui.Button.OK) {
+        ui.alert('Cancelled.');
+        return;
+    }
+    const result = setupCredentials(response.getResponseText());
+    ui.alert(result);
+}
+
+function clearApiKey() {
+    PropertiesService.getScriptProperties().deleteProperty('DS_API_KEY');
+    return 'API key cleared.';
+}
+
+function getApiKey_() {
+    const apiKey = PropertiesService.getScriptProperties().getProperty('DS_API_KEY');
+    if (!apiKey || !apiKey.trim()) {
+        return {
+            ok: false,
+            error: 'Error: API key is missing. Use Prompt Tools &gt; Set API Key.'
+        };
+    }
+    return { ok: true, value: apiKey.trim() };
+}
+
+function setupPromptDoc(docIdOrUrl, taskName) {
+    const cleanTaskName = normalizeTaskName(taskName || 'sentiment');
+    const configuredDocId = (DS_CONFIG1.PROMPT_DOC_IDS &amp;&amp;
+        DS_CONFIG1.PROMPT_DOC_IDS[cleanTaskName]) || '';
+    const rawInput = (docIdOrUrl !== undefined &amp;&amp; docIdOrUrl !== null &amp;&amp;
+        docIdOrUrl.toString().trim() !== '')
+        ? docIdOrUrl.toString().trim()
+        : configuredDocId.toString().trim();
+    if (!rawInput) {
+        throw new Error('Please provide a valid Google Doc ID/URL.');
+    }
+    let cleanDocId = rawInput;
+    if (rawInput.indexOf('docs.google.com/document') !== -1) {
+        const match = rawInput.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+        if (!match || !match[1]) {
+            throw new Error('Could not extract a valid Doc ID from the URL.');
+        }
+        cleanDocId = match[1];
+    }
+    const scriptProps = PropertiesService.getScriptProperties();
+    scriptProps.setProperty(getPromptDocIdKey(cleanTaskName), cleanDocId);
+    return syncPromptFromDoc(cleanTaskName);
+}
+
+function syncPromptFromDoc(taskName) {
+    try {
+        const cleanTaskName = normalizeTaskName(taskName || 'sentiment');
+        const scriptProps = PropertiesService.getScriptProperties();
+        const configuredDocId = (DS_CONFIG1.PROMPT_DOC_IDS &amp;&amp;
+            DS_CONFIG1.PROMPT_DOC_IDS[cleanTaskName]) || '';
+        const propertyDocId = scriptProps.getProperty(
+            getPromptDocIdKey(cleanTaskName));
+        const docId = configuredDocId || propertyDocId;
+        if (!docId) {
+            return 'Error: Prompt Doc is not configured for "' + cleanTaskName + '".';
+        }
+        const docText = DocumentApp.openById(docId).getBody().getText().trim();
+        if (!docText) {
+            return 'Error: Prompt Doc for "' + cleanTaskName + '" is empty.';
+        }
+        scriptProps.setProperty(getPromptTextKey(cleanTaskName), docText);
+        return 'Prompt synced successfully for "' + cleanTaskName + '".';
+    } catch (error) {
+        return 'Error: Unable to read Prompt Doc - ' + error.toString();
+    }
+}
+
+function syncAllPromptsFromDocs() {
+    const tasks = ['sentiment', 'summary', 'category'];
+    const results = tasks.map(function(task) {
+        return syncPromptFromDoc(task);
+    });
+    return results.join('\n');
+}
+
+function getCachedSystemPrompt(taskName) {
+    const cleanTaskName = normalizeTaskName(taskName || 'sentiment');
+    const promptText = PropertiesService.getScriptProperties()
+        .getProperty(getPromptTextKey(cleanTaskName));
+    if (!promptText || promptText.trim() === '') {
+        return 'Error: Prompt for "' + cleanTaskName + '" is not synced yet.';
+    }
+    return promptText;
+}
+
+function normalizeTaskName(taskName) {
+    const validTasks = ['sentiment', 'summary', 'category'];
+    const normalized = String(taskName || '').trim().toLowerCase();
+    if (validTasks.indexOf(normalized) === -1) {
+        throw new Error('Invalid taskName. Use one of: sentiment, summary, category.');
+    }
+    return normalized;
+}
+
+function getPromptTextKey(taskName) {
+    return 'PROMPT_TEXT_' + taskName.toUpperCase();
+}
+
+function getPromptDocIdKey(taskName) {
+    return 'PROMPT_DOC_ID_' + taskName.toUpperCase();
+}
+
+function parseJsonSafe_(text) {
+    try { return JSON.parse(text); }
+    catch (error) { return null; }
+}
+
+function callDeepSeek_(payload, apiKey) {
+    const options = {
+        method: 'post',
+        contentType: 'application/json',
+        headers: { 'Authorization': 'Bearer ' + apiKey,
+                    'Content-Type': 'application/json' },
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true,
+        timeout: DS_CONFIG1.REQUEST_TIMEOUT_MS
+    };
+    let attempt = 0;
+    const maxAttempts = DS_CONFIG1.REQUEST_RETRIES + 1;
+    while (attempt &lt; maxAttempts) {
+        attempt++;
+        try {
+            const response = UrlFetchApp.fetch(DS_CONFIG1.API_ENDPOINT, options);
+            const status = response.getResponseCode();
+            const bodyText = response.getContentText() || '';
+            const bodyJson = parseJsonSafe_(bodyText);
+            if (status === 200) {
+                return { ok: true, data: bodyJson || {} };
+            }
+            const retryable = status === 429 || status >= 500;
+            if (retryable &amp;&amp; attempt &lt; maxAttempts) {
+                Utilities.sleep(1000 * attempt);
+                continue;
+            }
+            const apiMessage = bodyJson &amp;&amp; bodyJson.error &amp;&amp; bodyJson.error.message
+                ? bodyJson.error.message
+                : ('API request failed with status ' + status);
+            return { ok: false, error: 'Error: ' + apiMessage, status: status };
+        } catch (error) {
+            if (attempt &lt; maxAttempts) {
+                Utilities.sleep(1000 * attempt);
+                continue;
+            }
+            return { ok: false, error: 'Error: Network/API request failed - ' +
+                error.toString() };
+        }
+    }
+    return { ok: false, error: 'Error: API request failed after retries.' };
+}
+
+function checkRateLimit() {
+    const cache = CacheService.getScriptCache();
+    const today = new Date().toDateString();
+    const requestCount = cache.get(today);
+    if (!requestCount) {
+        cache.put(today, '1', 24 * 60 * 60);
+        return true;
+    }
+    const count = parseInt(requestCount);
+    if (count >= DS_CONFIG1.DAILY_REQUEST_LIMIT) {
+        return false;
+    }
+    cache.put(today, (count + 1).toString(), 24 * 60 * 60);
+    return true;
+}
+
+function runAiTask(taskName, text_to_analyze) {
+    if (!text_to_analyze || text_to_analyze.toString().trim() === '') {
+        return "Cell is empty";
+    }
+    if (!checkRateLimit()) {
+        return 'Error: Daily request limit (' +
+            DS_CONFIG1.DAILY_REQUEST_LIMIT + ') exceeded.';
+    }
+    const apiKeyResult = getApiKey_();
+    if (!apiKeyResult.ok) return apiKeyResult.error;
+    const systemPrompt = getCachedSystemPrompt(taskName);
+    if (systemPrompt.indexOf('Error:') === 0) return systemPrompt;
+    const payload = {
+        model: DS_CONFIG1.MODEL,
+        messages: [
+            { "role": "system", "content": systemPrompt },
+            { "role": "user",   "content": text_to_analyze }
+        ],
+        max_tokens: DS_CONFIG1.MAX_TOKENS,
+        temperature: DS_CONFIG1.TEMPERATURE
+    };
+    const result = callDeepSeek_(payload, apiKeyResult.value);
+    if (!result.ok) return result.error;
+    const content = result.data &amp;&amp;
+        result.data.choices &amp;&amp;
+        result.data.choices[0] &amp;&amp;
+        result.data.choices[0].message &amp;&amp;
+        result.data.choices[0].message.content;
+    if (!content) return 'Error: API returned an unexpected response format.';
+    return String(content).trim();
+}
+
+/** @customfunction */
+function sentimentTagger(text_to_analyze) {
+    return runAiTask('sentiment', text_to_analyze);
+}
+
+/** @customfunction */
+function summarizer(text_to_analyze) {
+    return runAiTask('summary', text_to_analyze);
+}
+
+/** @customfunction */
+function categoryTagger(text_to_analyze) {
+    return runAiTask('category', text_to_analyze);
+}
+
+function onOpen() {
+    const ui = SpreadsheetApp.getUi();
+    const apiMenu = ui.createMenu('API')
+        .addItem('Set API Key', 'setApiKeyFromPrompt')
+        .addItem('Clear API Key', 'menuClearApiKey');
+    const promptsMenu = ui.createMenu('Prompts')
+        .addItem('Sync Sentiment Prompt', 'menuSyncSentimentPrompt')
+        .addItem('Sync Summary Prompt', 'menuSyncSummaryPrompt')
+        .addItem('Sync Category Prompt', 'menuSyncCategoryPrompt')
+        .addItem('Sync All Prompts', 'menuSyncAllPrompts');
+    const outputMenu = ui.createMenu('Output')
+        .addItem('Paste Selected as Text', 'menuPasteSelectedAsText')
+        .addItem('Freeze AI Formulas (Active Sheet)',
+            'freezeApiFormulasActiveSheet');
+    ui.createMenu('Prompt Tools')
+        .addSubMenu(apiMenu)
+        .addSubMenu(promptsMenu)
+        .addSubMenu(outputMenu)
+        .addToUi();
+}
+
+function menuClearApiKey() {
+    SpreadsheetApp.getUi().alert(clearApiKey());
+}
+function menuSyncSentimentPrompt() {
+    SpreadsheetApp.getUi().alert(syncPromptFromDoc('sentiment'));
+}
+function menuSyncSummaryPrompt() {
+    SpreadsheetApp.getUi().alert(syncPromptFromDoc('summary'));
+}
+function menuSyncCategoryPrompt() {
+    SpreadsheetApp.getUi().alert(syncPromptFromDoc('category'));
+}
+function menuSyncAllPrompts() {
+    SpreadsheetApp.getUi().alert(syncAllPromptsFromDocs());
+}
+function menuPasteSelectedAsText() {
+    const sheet = SpreadsheetApp.getActiveSheet();
+    const range = sheet.getActiveRange();
+    if (!range) {
+        SpreadsheetApp.getUi().alert('No range selected.');
+        return;
+    }
+    const values = range.getDisplayValues();
+    range.setNumberFormat('@STRING@');
+    range.setValues(values);
+    SpreadsheetApp.getUi().alert('Selected cells converted to plain text.');
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PART B: FreezeFunc Script -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon purple">&#x2744;</div>
+      <h2>Part B &mdash; Add the FreezeFunc Script</h2>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <p><strong>Create a new script file</strong></p>
+        <p>In the Apps Script editor, click the <strong>+</strong> button next to "Files" and select <strong>Script</strong>. Name it <code>FreezeFunc</code>.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <p><strong>Copy &amp; paste the FreezeFunc code:</strong></p>
+        <div class="file-label">&#x2744; FreezeFunc.gs (copy this entire block)</div>
+<pre><code>const AI_CUSTOM_FUNCTIONS = [
+  'sentimentTagger',
+  'summarizer',
+  'categoryTagger'
+];
+
+const AI_FORMULA_REGEX = new RegExp(
+  '=\\s*(' + AI_CUSTOM_FUNCTIONS.join('|') + ')\\s*\\(','i'
+);
+
+/** Freeze AI formulas in the ACTIVE sheet only. */
+function freezeApiFormulasActiveSheet() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const range = sheet.getDataRange();
+  const formulas = range.getFormulas();
+  const values   = range.getValues();
+  let frozen = 0;
+
+  for (let r = 0; r &lt; formulas.length; r++) {
+    for (let c = 0; c &lt; formulas[r].length; c++) {
+      const f = formulas[r][c];
+      if (f &amp;&amp; AI_FORMULA_REGEX.test(f)) {
+        frozen++;
+      } else if (f) {
+        values[r][c] = f;
+      }
+    }
+  }
+
+  if (frozen &gt; 0) {
+    range.setValues(values);
+  }
+
+  SpreadsheetApp.getActive().toast(
+    frozen + ' AI formula(s) frozen in "' + sheet.getName() + '"',
+    'Freeze AI Formulas',
+    5
+  );
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PART C: Customize -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon orange">&#x270F;</div>
+      <h2>Part C &mdash; Customize the Configuration</h2>
+    </div>
+    <p>Now you need to modify <strong>three things</strong> in the <code>DS_CONFIG1</code> object at the top of <code>Code.gs</code> to make it your own:</p>
+
+    <h3>Task 1: Change the Daily Request Limit</h3>
+    <p>Find this line near the top of the script:</p>
+<pre><code>DAILY_REQUEST_LIMIT: 500,</code></pre>
+    <p>Change it to a value that fits your usage. For example, to limit to 100 requests per day:</p>
+<pre><code>DAILY_REQUEST_LIMIT: 100,</code></pre>
+    <div class="alert alert-warn">
+      <span class="alert-icon">&#x26A0;</span>
+      <span><strong>Why change this?</strong> Each API call costs tokens. A lower limit prevents accidental overuse during testing. You can always increase it later.</span>
+    </div>
+
+    <h3>Task 2: Replace the Google Doc IDs with Your Own</h3>
+    <p>Find the <code>PROMPT_DOC_IDS</code> section:</p>
+<pre><code>PROMPT_DOC_IDS: {
+    sentiment: '1JP6WecOtrxfHRbCZK6ROacEFRQaIjfPGENfBUb8IM1M',
+    summary: '1kXMZSSrPNx0coqpzqtkzVmGdCfpzJlbUpzfQfR9Hp7M',
+    category: '15c5Xu3wEerypXUGgfclGAodAZg8pJdhyieN1TS9iS5Q'
+}</code></pre>
+    <p>Replace each ID with the ID from <strong>your own Google Docs</strong> containing your system prompts. To find a Doc ID:</p>
+    <ol>
+      <li>Open the Google Doc in your browser</li>
+      <li>Look at the URL: <code>https://docs.google.com/document/d/<strong>YOUR_DOC_ID_HERE</strong>/edit</code></li>
+      <li>Copy the long string between <code>/d/</code> and <code>/edit</code></li>
+    </ol>
+    <p>For example:</p>
+<pre><code>PROMPT_DOC_IDS: {
+    sentiment: 'YOUR_SENTIMENT_DOC_ID',
+    summary:   'YOUR_SUMMARY_DOC_ID',
+    category:  'YOUR_CATEGORY_DOC_ID'
+}</code></pre>
+    <div class="alert alert-info">
+      <span class="alert-icon">&#x1F4A1;</span>
+      <span><strong>What are these docs?</strong> Each Google Doc contains the "system prompt" that tells the AI how to analyze text. For example, the sentiment doc might say: <em>"Classify the following text as Positive, Negative, or Neutral."</em></span>
+    </div>
+
+    <h3>Task 3: Save the Script</h3>
+    <p>Click the <strong>floppy disk icon</strong> (or press <code>Ctrl + S</code>) to save both files.</p>
+  </div>
+
+  <!-- PART D: Verify -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon green">&#x2705;</div>
+      <h2>Part D &mdash; Verify the UI Is Reflected on Google Sheets</h2>
+    </div>
+    <p>Now check that everything is working correctly in your spreadsheet.</p>
+
+    <div class="step">
+      <div class="step-num">7</div>
+      <div class="step-body">
+        <p><strong>Go back to your Google Sheet tab</strong></p>
+        <p>Switch back to the spreadsheet tab in your browser.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">8</div>
+      <div class="step-body">
+        <p><strong>Reload the page</strong></p>
+        <p>Press <code>F5</code> or <code>Ctrl + R</code> to reload the spreadsheet. This triggers the <code>onOpen()</code> function.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">9</div>
+      <div class="step-body">
+        <p><strong>Check for the "Prompt Tools" menu</strong></p>
+        <p>After the page reloads, look at the <strong>menu bar</strong> (next to Help). You should see a new menu item called <strong>"Prompt Tools"</strong>.</p>
+        <div class="alert alert-info">
+          <span class="alert-icon">&#x23F3;</span>
+          <span><strong>Note:</strong> The menu may take a few seconds to appear while the script initializes. If it doesn't show up, try reloading once more.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">10</div>
+      <div class="step-body">
+        <p><strong>Verify the sub-menus</strong></p>
+        <p>Click on <strong>"Prompt Tools"</strong> and confirm you see these three sub-menus:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Sub-Menu</th><th>Items Inside</th></tr></thead>
+            <tbody>
+              <tr><td><strong>API</strong></td><td>Set API Key, Clear API Key</td></tr>
+              <tr><td><strong>Prompts</strong></td><td>Sync Sentiment Prompt, Sync Summary Prompt, Sync Category Prompt, Sync All Prompts</td></tr>
+              <tr><td><strong>Output</strong></td><td>Paste Selected as Text, Freeze AI Formulas (Active Sheet)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">11</div>
+      <div class="step-body">
+        <p><strong>Set your API Key</strong></p>
+        <p>Click <strong>Prompt Tools &gt; API &gt; Set API Key</strong>. A dialog will appear asking for your DeepSeek API key. Paste it and click OK.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">12</div>
+      <div class="step-body">
+        <p><strong>Sync your prompts</strong></p>
+        <p>Click <strong>Prompt Tools &gt; Prompts &gt; Sync All Prompts</strong>. You should see a confirmation message showing the sync results for each task.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">13</div>
+      <div class="step-body">
+        <p><strong>Test a custom function</strong></p>
+        <p>In any cell (e.g., <strong>A1</strong>), type some sample text like <em>"The product launch was a huge success"</em>. Then in cell <strong>B1</strong>, type:</p>
+<pre><code>=sentimentTagger(A1)</code></pre>
+        <p>If everything is configured correctly, the cell will display the AI-generated sentiment result.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Troubleshooting -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon purple">&#x1F527;</div>
+      <h2>Troubleshooting</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Problem</th><th>Solution</th></tr></thead>
+        <tbody>
+          <tr><td>"Prompt Tools" menu doesn't appear</td><td>Reload the sheet. If it still doesn't appear, open Apps Script and check for syntax errors (red underlines).</td></tr>
+          <tr><td>Authorization required popup</td><td>Click "Review Permissions", select your Google account, and click "Allow". This is normal for first-time use.</td></tr>
+          <tr><td>Cell shows "Error: API key is missing"</td><td>Go to Prompt Tools &gt; API &gt; Set API Key and paste your DeepSeek key.</td></tr>
+          <tr><td>Cell shows "Error: Prompt not synced yet"</td><td>Go to Prompt Tools &gt; Prompts &gt; Sync All Prompts.</td></tr>
+          <tr><td>Cell shows "Error: Unable to read Prompt Doc"</td><td>Check that your Google Doc IDs are correct and that you have access to those documents.</td></tr>
+          <tr><td>Cell shows "Error: Daily request limit exceeded"</td><td>You hit the limit you set. Wait until tomorrow or increase <code>DAILY_REQUEST_LIMIT</code> in the script.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB 1 — CSV SOURCE LIST ACTIVITY
+     ═══════════════════════════════════════════════════ -->
+<section class="tab-content" id="tab-0">
+
+  <!-- Intro -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon blue">&#x1F4CA;</div>
+      <h2>Activity: Export Raw CSV per Client</h2>
+    </div>
+    <p>For each account you handle, export the <strong>raw CSV</strong> from <strong>FAIRHAIR MW</strong> (media monitoring). The output is a CSV file &mdash; one per client.</p>
+  </div>
+
+  <!-- Instructions -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon green">&#x1F6E0;</div>
+      <h2>What To Do</h2>
+    </div>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <p><strong>Log in to FAIRHAIR MW</strong></p>
+        <p>Open the FAIRHAIR media monitoring platform and sign in with your credentials.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <p><strong>Select a client/account</strong></p>
+        <p>Pick one of the accounts you handle. Filter the results to show that client's media coverage.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <p><strong>Export as CSV</strong></p>
+        <p>Click the export/download button and choose <strong>CSV</strong> format. Save the file with the client name, e.g. <code>ClientName_raw.csv</code>.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <p><strong>Repeat for each account</strong></p>
+        <p>Do the same for every client you handle. You should have one CSV file per client.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expected Output -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon orange">&#x1F4C1;</div>
+      <h2>Expected Output</h2>
+    </div>
+    <p>You should end up with a set of CSV files like this:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Client / Account</th><th>Filename</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Client A</td><td><code>ClientA_raw.csv</code></td></tr>
+          <tr><td>2</td><td>Client B</td><td><code>ClientB_raw.csv</code></td></tr>
+          <tr><td>3</td><td>Client C</td><td><code>ClientC_raw.csv</code></td></tr>
+          <tr><td>4</td><td>Client D</td><td><code>ClientD_raw.csv</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert alert-info">
+      <span class="alert-icon">&#x1F4A1;</span>
+      <span>Each CSV should contain the raw data as-is from FAIRHAIR MW &mdash; no duplicates removed, no columns changed. Just the straight export.</span>
+    </div>
+  </div>
+
+  <!-- Sample Source List -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon purple">&#x2728;</div>
+      <h2>Sample Source URLs (No Duplicates)</h2>
+    </div>
+    <p>Below is an example of the kind of unique source URLs you can expect inside each CSV. No two rows should have the same URL.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Source Domain</th><th>Sample URL</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>inquirer.net</td><td>https://business.inquirer.net/client-a-expansion-2026</td></tr>
+          <tr><td>2</td><td>rappler.com</td><td>https://www.rappler.com/business/client-a-q1-report</td></tr>
+          <tr><td>3</td><td>philstar.com</td><td>https://www.philstar.com/business/client-a-new-product</td></tr>
+          <tr><td>4</td><td>mb.com.ph</td><td>https://mb.com.ph/2026/03/15/client-a-partners</td></tr>
+          <tr><td>5</td><td>bworldonline.com</td><td>https://bworldonline.com/client-a-revenue-growth</td></tr>
+          <tr><td>6</td><td>manilatimes.net</td><td>https://www.manilatimes.net/client-a-ceo-interview</td></tr>
+          <tr><td>7</td><td>cnnphilippines.com</td><td>https://www.cnnphilippines.com/business/client-a-launch</td></tr>
+          <tr><td>8</td><td>abs-cbn.com</td><td>https://news.abs-cbn.com/business/client-a-expansion</td></tr>
+          <tr><td>9</td><td>gmanetwork.com</td><td>https://www.gmanetwork.com/news/money/client-a-deal</td></tr>
+          <tr><td>10</td><td>pna.gov.ph</td><td>https://www.pna.gov.ph/articles/client-a-award</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB 4 — PROMPT GENERATION EXERCISE
+     ═══════════════════════════════════════════════════ -->
+<section class="tab-content" id="tab-3">
+
+  <!-- Intro -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon purple">&#x1F9E0;</div>
+      <h2>Exercise: Create Your AI System Prompts</h2>
+    </div>
+    <p>In this exercise, you will write <strong>three system prompts</strong> that power the AI custom functions in Google Sheets. Each prompt will be saved in its own Google Doc and linked to the script via <code>PROMPT_DOC_IDS</code>.</p>
+    <div class="alert alert-info">
+      <span class="alert-icon">&#x1F4A1;</span>
+      <span><strong>Structure:</strong> Every prompt follows the same 4-part format &mdash; <strong>Role</strong>, <strong>Instruction</strong>, <strong>Constraints</strong>, <strong>Sample Output</strong>.</span>
+    </div>
+  </div>
+
+  <!-- The Structure -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon orange">&#x1F4D0;</div>
+      <h2>Prompt Structure</h2>
+    </div>
+    <p>All three prompts must follow this consistent format:</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Section</th><th>Purpose</th><th>What to Write</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Role</strong></td>
+            <td>Defines <em>who</em> the AI is</td>
+            <td>A short persona statement. Sets expertise, tone, and perspective.</td>
+          </tr>
+          <tr>
+            <td><strong>Instruction</strong></td>
+            <td>Defines <em>what</em> the AI must do</td>
+            <td>The core task. Be specific about input, action, and expected output format.</td>
+          </tr>
+          <tr>
+            <td><strong>Constraints</strong></td>
+            <td>Defines <em>boundaries</em></td>
+            <td>Rules, limits, things to avoid. Keeps the AI focused and consistent.</td>
+          </tr>
+          <tr>
+            <td><strong>Sample Output</strong></td>
+            <td>Defines <em>what good looks like</em></td>
+            <td>A concrete example of the expected response. Anchors the AI's format.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PROMPT 1: Summary -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon blue">&#x1F4DD;</div>
+      <h2>Prompt 1 &mdash; Summary Prompt</h2>
+    </div>
+    <p>This prompt powers the <code>=summarizer()</code> function. It takes article text and produces a concise summary.</p>
+
+    <h3>Instructions</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <p>Create a new Google Doc and name it <strong>"Summary Prompt"</strong></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <p>Write your prompt following the 4-part structure. Use the reference below as a starting point, then <strong>customize it</strong> to fit your clients' needs.</p>
+      </div>
+    </div>
+
+    <h3>Reference Template</h3>
+    <div class="file-label">&#x1F4C4; Summary Prompt &mdash; Google Doc</div>
+<pre><code>ROLE:
+You are a senior media analyst at a PR monitoring agency.
+You specialize in extracting key information from news
+articles and producing concise, executive-ready summaries
+for client reports.
+
+INSTRUCTION:
+Summarize the provided news article text. Your summary must:
+- Capture the main story in 1-2 sentences
+- Identify WHO is involved (people, organizations)
+- State WHAT happened or was announced
+- Note WHY it matters or its significance
+- Include any relevant numbers, dates, or data points
+
+Output a single paragraph summary of 40-60 words.
+Do not use bullet points in the output.
+
+CONSTRAINTS:
+- Maximum 60 words; never exceed this limit
+- Write in third person, past tense
+- Do not include your own opinions or analysis
+- Do not add information not found in the original text
+- If the text is too short or unclear, respond with:
+  "Insufficient content for summary"
+- Do not start with "The article discusses..." or
+  "This article is about..."
+- Use neutral, factual language throughout
+
+SAMPLE OUTPUT:
+
+Input: "Tech giant Acme Corp announced a $50M expansion
+of its Manila operations on March 10, creating 2,000 new
+jobs in AI development. CEO Maria Santos said the move
+positions the Philippines as a key hub for the company's
+Asia-Pacific growth strategy."
+
+Output: "Acme Corp announced a $50 million expansion of
+its Manila operations on March 10, projected to generate
+2,000 new AI development positions. CEO Maria Santos
+emphasized the investment strengthens the Philippines'
+role in the company's Asia-Pacific growth strategy."</code></pre>
+  </div>
+
+  <!-- PROMPT 2: Sentiment -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon green">&#x1F3F7;</div>
+      <h2>Prompt 2 &mdash; Sentiment Tagging Prompt</h2>
+    </div>
+    <p>This prompt powers the <code>=sentimentTagger()</code> function. It classifies article text by sentiment toward your client.</p>
+
+    <h3>Instructions</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <p>Create a new Google Doc and name it <strong>"Sentiment Prompt"</strong></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <p>Write your prompt using the structure below. Adjust the sentiment labels and definitions to match your agency's reporting standards.</p>
+      </div>
+    </div>
+
+    <h3>Reference Template</h3>
+    <div class="file-label">&#x1F4C4; Sentiment Prompt &mdash; Google Doc</div>
+<pre><code>ROLE:
+You are a media sentiment analyst specializing in brand
+reputation monitoring. You assess news coverage to determine
+how it reflects on the subject organization, using
+standardized sentiment categories for PR reporting.
+
+INSTRUCTION:
+Analyze the sentiment of the provided news article text
+toward the main subject (person, company, or organization
+mentioned most prominently). Classify it into exactly ONE
+of the following categories:
+
+- POSITIVE: Coverage that favorably portrays the subject
+  (achievements, awards, growth, praise, endorsements,
+  successful initiatives)
+- NEGATIVE: Coverage that unfavorably portrays the subject
+  (scandals, failures, criticism, losses, controversies,
+  legal issues)
+- NEUTRAL: Factual reporting with no clear positive or
+  negative framing (announcements, routine coverage,
+  industry data, event listings)
+- BALANCED: Coverage that contains BOTH clearly positive
+  AND clearly negative elements in roughly equal measure
+
+Output ONLY the sentiment label. Nothing else.
+
+CONSTRAINTS:
+- Respond with exactly ONE word: POSITIVE, NEGATIVE,
+  NEUTRAL, or BALANCED
+- Do not include explanations, justifications, or analysis
+- Do not use quotation marks in your response
+- Judge sentiment toward the PRIMARY subject, not
+  secondary mentions
+- Press releases and routine announcements are NEUTRAL
+  unless they contain evaluative language
+- Opinion pieces and editorials should be evaluated by
+  their stance, not the topic
+- If the text is empty, unreadable, or not a news article,
+  respond with: NEUTRAL
+
+SAMPLE OUTPUT:
+
+Input: "Acme Corp reported record-breaking Q1 revenue of
+$2.3 billion, exceeding analyst expectations by 15%.
+Investors cheered the results, pushing shares up 8%."
+
+Output: POSITIVE
+
+Input: "Acme Corp announced it will hold its annual
+shareholders meeting on April 15 at the Manila Convention
+Center. Registration opens at 8:00 AM."
+
+Output: NEUTRAL
+
+Input: "Acme Corp faces a class-action lawsuit from
+former employees alleging wage theft. The company denied
+the allegations, but labor groups have called for a
+government investigation."
+
+Output: NEGATIVE
+
+Input: "Acme Corp's new sustainability initiative earned
+praise from environmental groups, but the company also
+drew criticism for delaying factory emissions targets
+by two years."
+
+Output: BALANCED</code></pre>
+  </div>
+
+  <!-- PROMPT 3: Category / Theme -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon red">&#x1F4C1;</div>
+      <h2>Prompt 3 &mdash; Category / Theme Tagging Prompt</h2>
+    </div>
+    <p>This prompt powers the <code>=categoryTagger()</code> function. It assigns topic categories or themes to each article.</p>
+
+    <h3>Instructions</h3>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <p>Create a new Google Doc and name it <strong>"Category Prompt"</strong></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <p>Write your prompt below. <strong>Customize the category list</strong> to match the themes relevant to your clients' industries.</p>
+      </div>
+    </div>
+
+    <h3>Reference Template</h3>
+    <div class="file-label">&#x1F4C4; Category Prompt &mdash; Google Doc</div>
+<pre><code>ROLE:
+You are a media content classifier working for a PR
+monitoring agency. You categorize news articles into
+predefined topic themes to support media analysis
+reporting and share-of-voice tracking.
+
+INSTRUCTION:
+Read the provided news article text and assign it to
+the single MOST relevant category from the list below:
+
+CATEGORIES:
+- Corporate News (mergers, acquisitions, leadership
+  changes, company announcements)
+- Financial (earnings, revenue, stock, investments,
+  funding, economic data)
+- Product/Service (launches, reviews, updates, recalls,
+  features)
+- CSR/Sustainability (environmental initiatives, social
+  responsibility, community programs, ESG)
+- Legal/Regulatory (lawsuits, compliance, government
+  regulations, policy changes)
+- Industry/Market (market trends, industry analysis,
+  competitive landscape, forecasts)
+- Technology/Innovation (R&amp;D, patents, digital
+  transformation, AI, tech adoption)
+- People/HR (hiring, layoffs, workplace culture,
+  executive profiles, labor issues)
+- Crisis/Issues (scandals, PR crises, public backlash,
+  reputational threats)
+- Events (conferences, trade shows, summits, webinars,
+  ceremonies)
+
+Output ONLY the category name. Nothing else.
+
+CONSTRAINTS:
+- Choose exactly ONE category (the most dominant theme)
+- Use the exact category name from the list above
+- Do not create new categories or combine categories
+- If the article spans multiple themes, choose the one
+  that occupies the majority of the content
+- If the text is empty or not a news article, respond
+  with: Corporate News
+- Do not include explanations or reasoning
+- Do not use quotation marks in your response
+
+SAMPLE OUTPUT:
+
+Input: "Acme Corp announced the acquisition of Beta Inc
+for $300 million, expanding its footprint in Southeast
+Asia. The deal is expected to close by Q3."
+
+Output: Corporate News
+
+Input: "Acme Corp launched its new AI-powered analytics
+platform at CES 2026, featuring real-time media
+monitoring and automated reporting capabilities."
+
+Output: Product/Service
+
+Input: "Acme Corp's CEO spoke at the World Economic Forum
+about the company's pledge to achieve net-zero emissions
+by 2030, committing $100M to renewable energy projects."
+
+Output: CSR/Sustainability
+
+Input: "The Philippine SEC opened an investigation into
+Acme Corp's financial disclosures following whistleblower
+complaints about irregularities in Q4 reporting."
+
+Output: Legal/Regulatory</code></pre>
+  </div>
+
+  <!-- How to Link to Google Sheets -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon orange">&#x1F517;</div>
+      <h2>Linking Prompts to Google Sheets</h2>
+    </div>
+    <p>After creating all three Google Docs, connect them to your script:</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <p><strong>Get each Doc's ID</strong> from the URL:</p>
+<pre><code>https://docs.google.com/document/d/<strong>THIS_IS_THE_DOC_ID</strong>/edit</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <p><strong>Update <code>PROMPT_DOC_IDS</code></strong> in your Apps Script <code>Code.gs</code>:</p>
+<pre><code>PROMPT_DOC_IDS: {
+    sentiment: 'YOUR_SENTIMENT_DOC_ID_HERE',
+    summary:   'YOUR_SUMMARY_DOC_ID_HERE',
+    category:  'YOUR_CATEGORY_DOC_ID_HERE'
+}</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <p><strong>Sync the prompts</strong> &mdash; In your Google Sheet, go to <em>Prompt Tools &gt; Prompts &gt; Sync All Prompts</em></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <p><strong>Test each function</strong> with sample text:</p>
+<pre><code>=summarizer(A2)        &rarr; Should return a 40-60 word summary
+=sentimentTagger(A2)   &rarr; Should return POSITIVE, NEGATIVE, NEUTRAL, or BALANCED
+=categoryTagger(A2)    &rarr; Should return one category name</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customization Tips -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon blue">&#x1F4AC;</div>
+      <h2>Customization Tips</h2>
+    </div>
+    <ul>
+      <li><strong>Adjust categories to your industry</strong> &mdash; replace or add categories in the Category Prompt to match your clients' reporting needs (e.g., "Healthcare", "Real Estate", "FMCG")</li>
+      <li><strong>Change sentiment labels</strong> &mdash; some agencies use "Favorable / Unfavorable / Neutral" instead of "Positive / Negative / Neutral"</li>
+      <li><strong>Tune summary length</strong> &mdash; change the word count in the Summary Prompt (e.g., 30-40 words for shorter reports, 80-100 for detailed ones)</li>
+      <li><strong>Add client-specific context</strong> &mdash; include client names or key topics in the prompt so the AI knows what to focus on</li>
+      <li><strong>Update prompts without code changes</strong> &mdash; just edit the Google Doc and re-sync via the menu; no need to touch Apps Script</li>
+    </ul>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB 5 — DOCUMENTATION PRESENTATION
+     ═══════════════════════════════════════════════════ -->
+<section class="tab-content" id="tab-4">
+  <div class="slides-wrapper">
+
+    <!-- Slide 1: Title -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 1</span>
+        <span class="slide-title">Title Slide</span>
+      </div>
+      <div class="slide-body" style="text-align:center; padding:48px 28px;">
+        <p style="color:var(--accent); font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; margin-bottom:12px;">Technical Documentation</p>
+        <h2 style="font-size:28px; margin-bottom:8px;">DeepSeek AI Prompt Tools</h2>
+        <p style="font-size:16px; color:var(--text-dim);">Google Apps Script + FreezeFunc</p>
+        <hr style="max-width:120px; margin:20px auto; border-color:var(--accent);">
+        <p style="font-size:13px;">Version 1.0</p>
+      </div>
+    </div>
+
+    <!-- Slide 2: Overview -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 2</span>
+        <span class="slide-title">Overview</span>
+      </div>
+      <div class="slide-body">
+        <h2>What Does It Do?</h2>
+        <p>Integrates the <strong>DeepSeek AI API</strong> into Google Sheets via Google Apps Script, enabling AI-powered text analysis directly from spreadsheet cells.</p>
+        <h3>Key Capabilities</h3>
+        <ul>
+          <li><strong>3 custom functions</strong> callable from any cell: sentiment, summary, category</li>
+          <li><strong>External prompt management</strong> via Google Docs &mdash; no code changes needed</li>
+          <li><strong>Daily rate limiting</strong> to prevent accidental API overuse</li>
+          <li><strong>Secure key storage</strong> via Script Properties</li>
+          <li><strong>Automatic retry</strong> with exponential back-off</li>
+          <li><strong>FreezeFunc</strong> to lock results and stop re-running formulas</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 3: Architecture -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 3</span>
+        <span class="slide-title">Architecture</span>
+      </div>
+      <div class="slide-body">
+        <h2>Data Flow</h2>
+        <p>What happens when a user types <code>=sentimentTagger(A2)</code>:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Step</th><th>Component</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Google Sheets</td><td>Evaluates custom function, passes cell value</td></tr>
+              <tr><td>2</td><td><code>sentimentTagger()</code></td><td>Calls <code>runAiTask('sentiment', text)</code></td></tr>
+              <tr><td>3</td><td><code>runAiTask()</code></td><td>Validates input, checks rate limit</td></tr>
+              <tr><td>4</td><td><code>getApiKey_()</code></td><td>Reads API key from Script Properties</td></tr>
+              <tr><td>5</td><td><code>getCachedSystemPrompt()</code></td><td>Reads cached prompt from Properties</td></tr>
+              <tr><td>6</td><td><code>callDeepSeek_()</code></td><td>HTTP POST to DeepSeek API</td></tr>
+              <tr><td>7</td><td>DeepSeek API</td><td>Returns AI-generated response</td></tr>
+              <tr><td>8</td><td>Google Sheets</td><td>Displays the result in the cell</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Custom Functions -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 4</span>
+        <span class="slide-title">Custom Functions</span>
+      </div>
+      <div class="slide-body">
+        <h2>Three AI-Powered Functions</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Function</th><th>Purpose</th><th>Cell Usage</th></tr></thead>
+            <tbody>
+              <tr><td><code>sentimentTagger(text)</code></td><td>Analyzes sentiment of the input text</td><td><code>=sentimentTagger(A2)</code></td></tr>
+              <tr><td><code>summarizer(text)</code></td><td>Generates a concise summary</td><td><code>=summarizer(A2)</code></td></tr>
+              <tr><td><code>categoryTagger(text)</code></td><td>Tags text with relevant categories</td><td><code>=categoryTagger(A2)</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert alert-info">
+          <span class="alert-icon">&#x1F4A1;</span>
+          <span>All three functions route through the central <code>runAiTask()</code> dispatcher, sharing the same validation, rate limiting, and error handling logic.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Configuration -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 5</span>
+        <span class="slide-title">Configuration</span>
+      </div>
+      <div class="slide-body">
+        <h2>DS_CONFIG1 Settings</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Property</th><th>Value</th><th>What It Controls</th></tr></thead>
+            <tbody>
+              <tr><td><code>DAILY_REQUEST_LIMIT</code></td><td>500</td><td>Max API calls/day</td></tr>
+              <tr><td><code>MODEL</code></td><td><code>deepseek-chat</code></td><td>AI model used</td></tr>
+              <tr><td><code>MAX_TOKENS</code></td><td>4096</td><td>Response length cap</td></tr>
+              <tr><td><code>TEMPERATURE</code></td><td>0.0</td><td>Deterministic output</td></tr>
+              <tr><td><code>REQUEST_RETRIES</code></td><td>2</td><td>Retry attempts on failure</td></tr>
+              <tr><td><code>REQUEST_TIMEOUT_MS</code></td><td>30,000</td><td>30-second timeout</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Prompt Document IDs</h3>
+        <p>Each task maps to a Google Doc ID. Edit the Doc to change the AI's behavior &mdash; no code changes required.</p>
+<pre><code>PROMPT_DOC_IDS: {
+  sentiment: '1JP6WecOtr...',
+  summary:   '1kXMZSSrPN...',
+  category:  '15c5Xu3wEe...'
+}</code></pre>
+      </div>
+    </div>
+
+    <!-- Slide 6: Prompt Management -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 6</span>
+        <span class="slide-title">Prompt Management</span>
+      </div>
+      <div class="slide-body">
+        <h2>External Prompt System</h2>
+        <p>System prompts are stored in <strong>Google Docs</strong>, not hardcoded in the script. This allows non-developers to update AI behavior.</p>
+        <h3>Workflow</h3>
+        <ol>
+          <li>Edit the prompt text in the Google Doc</li>
+          <li>Run <em>Prompt Tools &gt; Prompts &gt; Sync All Prompts</em></li>
+          <li>The script caches the text in Script Properties</li>
+          <li>Custom functions read from cache (fast, no Docs API call)</li>
+        </ol>
+        <h3>Key Functions</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Function</th><th>Role</th></tr></thead>
+            <tbody>
+              <tr><td><code>setupPromptDoc()</code></td><td>Register a Doc + initial sync</td></tr>
+              <tr><td><code>syncPromptFromDoc()</code></td><td>Re-sync one task's prompt</td></tr>
+              <tr><td><code>syncAllPromptsFromDocs()</code></td><td>Re-sync all three tasks</td></tr>
+              <tr><td><code>getCachedSystemPrompt()</code></td><td>Read from cache at call time</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 7: FreezeFunc -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 7</span>
+        <span class="slide-title">FreezeFunc</span>
+      </div>
+      <div class="slide-body">
+        <h2>Freeze AI Formulas</h2>
+        <p>The <strong>FreezeFunc</strong> script solves a critical problem: every time the spreadsheet recalculates, AI custom functions re-run and consume API tokens.</p>
+        <h3>What It Does</h3>
+        <ul>
+          <li>Scans the active sheet for cells containing <code>sentimentTagger()</code>, <code>summarizer()</code>, or <code>categoryTagger()</code></li>
+          <li>Replaces those formulas with their current <strong>evaluated text values</strong></li>
+          <li>Preserves all other formulas untouched</li>
+          <li>Performs a single batched write for efficiency</li>
+        </ul>
+        <h3>How to Use</h3>
+        <p>Go to <em>Prompt Tools &gt; Output &gt; Freeze AI Formulas (Active Sheet)</em></p>
+        <div class="alert alert-warn">
+          <span class="alert-icon">&#x26A0;</span>
+          <span><strong>Irreversible:</strong> Once frozen, the original formulas are replaced. Make sure results are correct before freezing.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 8: Error Handling -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 8</span>
+        <span class="slide-title">Error Handling</span>
+      </div>
+      <div class="slide-body">
+        <h2>Error Messages</h2>
+        <p>All functions return human-readable strings prefixed with <code>Error:</code> rather than throwing exceptions.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Condition</th><th>Message</th></tr></thead>
+            <tbody>
+              <tr><td>Input cell is blank</td><td>Cell is empty</td></tr>
+              <tr><td>Daily limit exceeded</td><td>Error: Daily request limit (500) exceeded</td></tr>
+              <tr><td>API key not set</td><td>Error: API key is missing</td></tr>
+              <tr><td>Prompt not synced</td><td>Error: Prompt not synced yet</td></tr>
+              <tr><td>API HTTP error</td><td>Error: [DeepSeek error message]</td></tr>
+              <tr><td>Network failure</td><td>Error: Network/API request failed</td></tr>
+              <tr><td>Unexpected response</td><td>Error: Unexpected response format</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 9: Rate Limiting & Security -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 9</span>
+        <span class="slide-title">Rate Limiting &amp; Security</span>
+      </div>
+      <div class="slide-body">
+        <h2>Rate Limiting</h2>
+        <ul>
+          <li>Soft daily limit of <strong>500 requests</strong> (configurable)</li>
+          <li>Counter stored in CacheService with 24-hour TTL</li>
+          <li>Shared across all users of the same deployment</li>
+        </ul>
+        <h2 style="margin-top:24px;">Security Notes</h2>
+        <ul>
+          <li>API key stored in <strong>Script Properties</strong> (isolated per script)</li>
+          <li>Never hardcode the API key in source code</li>
+          <li>Prompt text is cached in Script Properties &mdash; readable by script editors</li>
+          <li>Custom functions run with the opening user's permissions</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 10: Menu Structure -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 10</span>
+        <span class="slide-title">Menu Structure</span>
+      </div>
+      <div class="slide-body">
+        <h2>Prompt Tools Menu</h2>
+        <p>The <code>onOpen()</code> function creates a custom menu with three sub-menus:</p>
+<pre><code>Prompt Tools
+  ├── API
+  │   ├── Set API Key
+  │   └── Clear API Key
+  ├── Prompts
+  │   ├── Sync Sentiment Prompt
+  │   ├── Sync Summary Prompt
+  │   ├── Sync Category Prompt
+  │   └── Sync All Prompts
+  └── Output
+      ├── Paste Selected Formula Results as Text
+      └── Freeze AI Formulas (Active Sheet)</code></pre>
+      </div>
+    </div>
+
+    <!-- Slide 11: Internal Helpers -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 11</span>
+        <span class="slide-title">Internal Helpers</span>
+      </div>
+      <div class="slide-body">
+        <h2>Internal Helper Functions</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Function</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td><code>normalizeTaskName()</code></td><td>Validates &amp; lowercases task name</td></tr>
+              <tr><td><code>getPromptTextKey()</code></td><td>Returns Properties key for cached prompt text</td></tr>
+              <tr><td><code>getPromptDocIdKey()</code></td><td>Returns Properties key for prompt Doc ID</td></tr>
+              <tr><td><code>parseJsonSafe_()</code></td><td>Parses JSON; returns null on failure</td></tr>
+              <tr><td><code>callDeepSeek_()</code></td><td>HTTP POST with retry logic</td></tr>
+              <tr><td><code>checkRateLimit()</code></td><td>Reads/increments daily counter</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 12: Summary -->
+    <div class="slide">
+      <div class="slide-bar">
+        <span class="slide-num">Slide 12</span>
+        <span class="slide-title">Summary</span>
+      </div>
+      <div class="slide-body" style="text-align:center; padding:48px 28px;">
+        <h2 style="margin-bottom:16px;">Key Takeaways</h2>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; text-align:left; max-width:600px; margin:0 auto;">
+          <div class="alert alert-info" style="margin:0;">
+            <span class="alert-icon">&#x26A1;</span>
+            <span><strong>2 Scripts</strong><br>aiIntegration.js + FreezeFunc.js</span>
+          </div>
+          <div class="alert alert-info" style="margin:0;">
+            <span class="alert-icon">&#x1F9E0;</span>
+            <span><strong>3 AI Functions</strong><br>Sentiment, Summary, Category</span>
+          </div>
+          <div class="alert alert-info" style="margin:0;">
+            <span class="alert-icon">&#x1F4C4;</span>
+            <span><strong>External Prompts</strong><br>Managed via Google Docs</span>
+          </div>
+          <div class="alert alert-info" style="margin:0;">
+            <span class="alert-icon">&#x1F6E1;</span>
+            <span><strong>Built-in Safety</strong><br>Rate limits, retries, error handling</span>
+          </div>
+        </div>
+        <hr style="max-width:120px; margin:28px auto; border-color:var(--accent);">
+        <p style="color:var(--text-dim); font-size:13px;">DeepSeek AI Prompt Tools &mdash; v1.0</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════
+     TAB 6 — SUMMARY / REQUIRED OUTPUT
+     ═══════════════════════════════════════════════════ -->
+<section class="tab-content active" id="tab-5">
+
+  <!-- Header -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon orange">&#x1F4E6;</div>
+      <h2>Required Output Summary</h2>
+    </div>
+    <p>Create a <strong>folder with your name</strong> and place all deliverables inside. Below is everything you need to submit.</p>
+  </div>
+
+  <!-- Folder Structure -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon blue">&#x1F4C2;</div>
+      <h2>Folder Structure</h2>
+    </div>
+    <p>Your submission folder should look like this:</p>
+<pre><code>YourName_LastName/
+│
+├── 1_CSV_Source_Lists/
+│   ├── ClientA_raw.csv
+│   ├── ClientB_raw.csv
+│   ├── ClientC_raw.csv
+│   └── ... (one CSV per client from FAIRHAIR MW)
+│
+├── 2_data-cleaning.md
+│
+├── 3_GoogleSheet_Link.txt
+│   └── (contains the link to your Google Sheet with Apps Script)
+│
+└── 4_Prompt_Doc_Links.txt
+    └── (contains links to your 3 Google Docs with prompts)</code></pre>
+  </div>
+
+  <!-- Deliverable Details -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon green">&#x2705;</div>
+      <h2>Deliverables Breakdown</h2>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Deliverable</th><th>Source Tab</th><th>Details</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>1</strong></td>
+            <td><strong>CSV Source Lists</strong></td>
+            <td>Tab 1 &mdash; CSV Source List</td>
+            <td>One raw CSV export from FAIRHAIR MW per client/account you handle. No duplicates. Save each file as <code>ClientName_raw.csv</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>2</strong></td>
+            <td><strong>data-cleaning.md</strong></td>
+            <td>Tab 2 &mdash; Skill Creation</td>
+            <td>The Markdown skill file generated using the Claude website. Contains instructions for deduplication, keyword filtering, and date enrichment.</td>
+          </tr>
+          <tr>
+            <td><strong>3</strong></td>
+            <td><strong>Google Sheet Link</strong></td>
+            <td>Tab 3 &mdash; Google Script</td>
+            <td>A shareable link to your Google Sheet that has both <code>Code.gs</code> and <code>FreezeFunc.gs</code> installed. The "Prompt Tools" menu must be visible when the sheet is opened.</td>
+          </tr>
+          <tr>
+            <td><strong>4</strong></td>
+            <td><strong>Three Prompt Doc Links</strong></td>
+            <td>Tab 4 &mdash; Prompt Generation</td>
+            <td>Shareable links to your three Google Docs, each following the Role / Instruction / Constraints / Sample Output structure.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Link Format -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon purple">&#x1F517;</div>
+      <h2>How to Format Your Links</h2>
+    </div>
+
+    <h3>3_GoogleSheet_Link.txt</h3>
+    <p>Create a text file with the shareable link to your Google Sheet:</p>
+<pre><code>Google Sheet (with Apps Script):
+https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit</code></pre>
+
+    <h3>4_Prompt_Doc_Links.txt</h3>
+    <p>Create a text file with all three prompt document links:</p>
+<pre><code>Summary Prompt:
+https://docs.google.com/document/d/YOUR_SUMMARY_DOC_ID/edit
+
+Sentiment Prompt:
+https://docs.google.com/document/d/YOUR_SENTIMENT_DOC_ID/edit
+
+Category / Theme Prompt:
+https://docs.google.com/document/d/YOUR_CATEGORY_DOC_ID/edit</code></pre>
+
+    <div class="alert alert-warn">
+      <span class="alert-icon">&#x26A0;</span>
+      <span><strong>Important:</strong> Make sure all Google Sheets and Docs are set to <strong>"Anyone with the link can view"</strong> before submitting.</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════ SCRIPT ═══════════════ -->
+<script>
+  function switchTab(tabId, clickedBtn) {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    clickedBtn.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    const target = document.getElementById('tab-' + tabId);
+    if (target) target.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

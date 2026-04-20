@@ -127,7 +127,8 @@ code{font-family:var(--mono);font-size:0.9em;background:var(--surface-2);padding
   z-index:2;
   transition:grid-template-columns 0.4s var(--ease-out);
 }
-.app.sidebar-collapsed{grid-template-columns:var(--sidebar-w-collapsed) 1fr}
+.app.sidebar-collapsed{grid-template-columns:0 1fr}
+.app.sidebar-collapsed .sidebar{transform:translateX(-100%);opacity:0;pointer-events:none;border-right-color:transparent}
 
 /* ═══════════════ SIDEBAR ═══════════════ */
 .sidebar{
@@ -148,19 +149,13 @@ code{font-family:var(--mono);font-size:0.9em;background:var(--surface-2);padding
   border-bottom:1px solid var(--border-soft);
 }
 .brand-mark{
-  width:36px;height:36px;border-radius:10px;
-  background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);
+  width:38px;height:38px;
   display:grid;place-items:center;
-  color:#fff;font-weight:800;font-size:16px;
-  box-shadow:0 4px 14px var(--primary-glow);
-  flex-shrink:0;position:relative;overflow:hidden;
+  flex-shrink:0;position:relative;
+  background:transparent;
 }
-.brand-mark::after{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,0.2) 50%,transparent 100%);
-  animation:brand-shine 4s ease-in-out infinite;
-}
-@keyframes brand-shine{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}
+.brand-mark svg,
+.brand-mark img{width:100%;height:100%;display:block;object-fit:contain}
 .brand-text{display:flex;flex-direction:column;line-height:1.15;min-width:0}
 .brand-title{font-weight:800;font-size:14px;letter-spacing:-0.01em;white-space:nowrap}
 .brand-sub{font-size:11px;color:var(--text-muted);font-weight:500;white-space:nowrap}
@@ -870,7 +865,7 @@ pre:hover .copy-btn{opacity:1}
   opacity:0;pointer-events:none;transition:all 0.3s var(--ease-out);
   z-index:100;
 }
-.app.sidebar-collapsed .fab{left:calc(var(--sidebar-w-collapsed) + 24px)}
+.app.sidebar-collapsed .fab{left:24px}
 .fab.visible{opacity:1;pointer-events:auto}
 .fab:hover{background:var(--primary);color:#fff;border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-md),0 0 20px var(--primary-glow)}
 
@@ -906,6 +901,56 @@ pre:hover .copy-btn{opacity:1}
   .view-hero h1{font-size:24px}
 }
 
+/* ═══════════════ FAQ ═══════════════ */
+.faq-item{
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  background:var(--surface);
+  margin-bottom:10px;
+  overflow:hidden;
+  transition:border-color 0.2s var(--ease);
+}
+.faq-item[open]{border-color:color-mix(in srgb,var(--primary) 32%,var(--border))}
+.faq-item summary{
+  list-style:none;cursor:pointer;
+  padding:14px 18px;
+  display:flex;align-items:flex-start;gap:12px;
+  font-weight:600;font-size:14px;color:var(--text);
+  user-select:none;
+}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-q-num{
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  color:var(--primary);background:var(--primary-pale);
+  padding:3px 7px;border-radius:6px;flex-shrink:0;
+  letter-spacing:0.02em;
+}
+.faq-q-text{flex:1;min-width:0;line-height:1.45}
+.faq-chevron{
+  flex-shrink:0;color:var(--text-muted);font-size:14px;
+  transition:transform 0.25s var(--ease);
+}
+.faq-item[open] .faq-chevron{transform:rotate(180deg);color:var(--primary)}
+.faq-body{
+  padding:2px 18px 18px 50px;
+  font-size:13.5px;color:var(--text-soft);line-height:1.65;
+  border-top:1px dashed var(--border-soft);
+  padding-top:14px;
+}
+.faq-body p{margin-bottom:10px}
+.faq-body p:last-child{margin-bottom:0}
+.faq-body strong{color:var(--text);font-weight:700}
+.faq-body ul{margin:8px 0 8px 20px}
+.faq-body ul li{margin-bottom:4px}
+.faq-body .table-wrap{margin:10px 0}
+.faq-callout{
+  margin-top:12px;padding:10px 14px;
+  border-radius:var(--radius-sm);
+  background:var(--amber-pale);
+  border:1px solid color-mix(in srgb,var(--amber) 26%,transparent);
+  font-size:13px;color:var(--text);
+}
+
 /* ═══════════════ UTILITIES ═══════════════ */
 .hidden{display:none !important}
 .text-mono{font-family:var(--mono)}
@@ -919,7 +964,9 @@ pre:hover .copy-btn{opacity:1}
 <aside class="sidebar" id="sidebar">
 
   <div class="sidebar-brand">
-    <div class="brand-mark">R</div>
+    <div class="brand-mark" aria-label="RDB logo">
+      <img src="logo.png" alt="RDB logo">
+    </div>
     <div class="brand-text">
       <div class="brand-title">RDB L&amp;D</div>
       <div class="brand-sub">Unified Hub · 2026</div>
@@ -947,22 +994,11 @@ pre:hover .copy-btn{opacity:1}
     <a href="#prompt-eng" class="nav-item" data-target="prompt-eng" data-search="Prompt &amp; Context"><span class="nav-num">11</span><span class="nav-label">Prompt &amp; Context</span><span class="nav-badge upcoming" data-deadline-badge="2026-05-18"></span></a>
     <div class="section-label">MEDIA</div>
     <a href="#recordings" class="nav-item" data-target="recordings" data-search="Recordings"><span class="nav-num">12</span><span class="nav-label">Recordings</span></a>
+    <div class="section-label">HELP</div>
+    <a href="#faqs" class="nav-item" data-target="faqs" data-search="FAQs"><span class="nav-num">13</span><span class="nav-label">FAQs</span></a>
   </nav>
 
   <div class="sidebar-footer">
-    <div class="footer-progress" title="Overall KPI progress">
-      <div class="progress-ring">
-        <svg viewBox="0 0 36 36">
-          <circle class="track" cx="18" cy="18" r="15.915"/>
-          <circle class="fill" id="progressRingFill" cx="18" cy="18" r="15.915" pathLength="100"/>
-        </svg>
-        <div class="progress-ring-text" id="progressRingText">0%</div>
-      </div>
-      <div class="footer-progress-text">
-        <span class="footer-progress-label">Completion</span>
-        <span class="footer-progress-value" id="progressValue">0 / 13 sections</span>
-      </div>
-    </div>
     <button class="theme-toggle" id="themeToggleBtn" type="button">
       <span class="theme-toggle-icon sun">☀</span>
       <span class="theme-toggle-icon moon">☾</span>
@@ -1014,7 +1050,7 @@ pre:hover .copy-btn{opacity:1}
         <li>Use the sidebar to jump to any integration &mdash; <span class="kbd">⌘K</span> opens a command palette.</li>
         <li><a href="#deadlines">Deadlines</a> is your at-a-glance timeline; badges in the sidebar count down live.</li>
         <li>The <strong>Exercises</strong> group has the hands-on builds; <strong>Resources</strong> has the reference decks.</li>
-        <li>Section progress auto-saves &mdash; the ring in the sidebar tracks how far you&rsquo;ve worked through.</li>
+        <li>Press <span class="kbd">Ctrl + B</span> to fully hide the sidebar when you need more room to read.</li>
       </ul>
     </div>
   </div>
@@ -2334,6 +2370,128 @@ Output: Legal/Regulatory</code></pre>
         <div class="recording-play">▶</div>
       </a>
     </div>
+  </div>
+
+</section>
+
+<section class="view" id="faqs">
+  <div class="view-hero">
+    <div class="view-hero-eyebrow"><span class="pulse"></span> Clarifications &amp; common questions</div>
+    <h1>Frequently Asked <span style="color:var(--primary);-webkit-text-fill-color:var(--primary)">Questions</span></h1>
+    <p>Responses to the points raised about tooling, scalability, process, and governance for the L&amp;D programme. Expand any question to read the full answer.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon blue">◈</div><h2>Tooling &amp; Architecture</h2></div>
+
+    <details class="faq-item">
+      <summary><span class="faq-q-num">Q1</span><span class="faq-q-text">Why Python? What alternatives were benchmarked?</span><span class="faq-chevron">▾</span></summary>
+      <div class="faq-body">
+        <p>Python was <strong>not selected as the main programming language</strong> — the L&amp;D program teaches Claude-assisted automation, and Python is simply the default output when Claude Code generates data-cleaning scripts (because pandas is the industry-standard library for tabular work).</p>
+        <p>The materials in <strong>2. Automation.pptx</strong> explicitly present multiple options side-by-side:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Task</th><th>Options covered</th></tr></thead>
+            <tbody>
+              <tr><td>Data cleaning</td><td>Python script · Claude Skill · Excel Macro (VBA)</td></tr>
+              <tr><td>Data tagging</td><td>Claude direct · DeepSeek API · Google Apps Script</td></tr>
+              <tr><td>Report assembly</td><td>Python Script · Claude Skill · Excel/PPT templates</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Selection criteria taught in session:</strong> reproducibility, analyst comfort, and whether the analyst wants to keep humans-in-the-loop. Claude direct or Excel macros are equally valid.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary><span class="faq-q-num">Q2</span><span class="faq-q-text">Streamlit as a production UX/UI layer</span><span class="faq-chevron">▾</span></summary>
+      <div class="faq-body">
+        <p>Streamlit is <strong>not locked in</strong> as the UX/UI layer for analyst workflows. The only Streamlit touchpoint in the L&amp;D materials is the RDB scraping tool at <code>rdb-automation-streamlit-staging.media-meter.in</code> — note the <code>-staging</code> subdomain, which is explicitly labeled a "developing project" in <strong>AI Integration Onboarding.pptx</strong>.</p>
+        <p>The actual analyst-facing interfaces taught are:</p>
+        <ul>
+          <li>Google Sheets + Apps Script custom functions (<code>=sentimentTagger</code>, <code>=summarizer</code>, <code>=categoryTagger</code>)</li>
+          <li>Claude.ai / Claude Code (for prompting, skills, script generation)</li>
+          <li>ClickUp (project + time tracking — see ClickUp Demo)</li>
+          <li>Interactive HTML SOPs (from the RDB SOP Generator skill)</li>
+        </ul>
+        <p>Streamlit is <strong>one tool for one scraping utility</strong> — not the UX stack.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary><span class="faq-q-num">Q3</span><span class="faq-q-text">The "7 slots" — clarifying what it actually refers to</span><span class="faq-chevron">▾</span></summary>
+      <div class="faq-body">
+        <p>The 7-slot limit is being misunderstood. It is <strong>not a Streamlit concurrency cap</strong>, and it is <strong>not a limit on simultaneous Claude usage</strong>. It refers specifically to the initial Claude account login / account-setup step — i.e., the one-time provisioning process when an analyst first signs in and configures their Claude workspace.</p>
+        <p><strong>Key implications:</strong></p>
+        <ul>
+          <li><strong>One-time, not ongoing</strong> — once an analyst is logged in and set up, they are not contending for a slot during daily work.</li>
+          <li><strong>Not a runtime bottleneck</strong> — Claude usage itself (prompting, running skills, Claude Code) has no 7-user cap; each analyst works on their own account afterward.</li>
+          <li><strong>No Streamlit single-threaded limitation applies</strong> — the scraping tool is a separate system; the 7-slot figure does not come from it.</li>
+        </ul>
+        <p>So the premise of the scalability/load-testing question doesn't apply here. The practical fix is simply to <strong>stagger initial account setup across the April 13–24 cohorts</strong> so no one is blocked at the login step. If an analyst does hit the limit during onboarding, they are scheduled into the next setup window.</p>
+        <div class="faq-callout"><strong>Important clarification:</strong> Nothing about Incident Reports (IR) was raised, taught, or tied to the L&amp;D program — not during the sessions and not in any follow-up material. The L&amp;D curriculum covers prompt engineering, Claude tools, automation workflows, SOP generation, and ClickUp usage — there is no IR policy, no IR trigger, and no IR linkage anywhere in the program. Any connection between L&amp;D access/usage and Incident Reports is not something that originated from the L&amp;D team, and would need to be raised separately with management.</div>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary><span class="faq-q-num">Q4</span><span class="faq-q-text">Code review, CI/CD, test coverage</span><span class="faq-chevron">▾</span></summary>
+      <div class="faq-body">
+        <p>The L&amp;D program is a <strong>training initiative, not a production software rollout</strong>. There is no "codebase" with a test-coverage percentage because:</p>
+        <ul>
+          <li>Analysts generate their own scripts via Claude (one-shot, reviewed before each run)</li>
+          <li>The shared Apps Script utilities (<code>aiIntegration.js</code>, <code>FreezeFunc.js</code>) are small (~380 lines total) and reviewed manually by the L&amp;D team</li>
+          <li>Outputs are always analyst-reviewed (AI outputs) before reaching a deliverable</li>
+        </ul>
+        <p>If formalization is requested, we can add a lightweight review checklist for shared scripts — but introducing CI/CD on analyst prompt-engineering would be out of proportion to the scope.</p>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary><span class="faq-q-num">Q5</span><span class="faq-q-text">Error handling, rollback, alerting, logging</span><span class="faq-chevron">▾</span></summary>
+      <div class="faq-body">
+        <p>For the one production-shaped piece (the Apps Script + DeepSeek integration, documented in <strong>DeepSeek_Prompt_Tools_Documentation.docx</strong>):</p>
+        <ul>
+          <li><strong>Errors</strong> → returned as human-readable strings in-cell (e.g., <em>"Error: Rate limit reached"</em>), never silent failures</li>
+          <li><strong>Retry</strong> → 2 retries with exponential back-off</li>
+          <li><strong>Rate limiting</strong> → 500 requests/day, cached counter with 24h TTL</li>
+          <li><strong>Logging</strong> → Apps Script execution logs (viewable in the Script Editor)</li>
+          <li><strong>Rollback</strong> → not needed; outputs are non-destructive (written to separate cells, frozen on command)</li>
+          <li><strong>API keys</strong> → stored in Script Properties, not in code</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-icon warm">◎</div><h2>Process</h2></div>
+
+    <details class="faq-item">
+      <summary><span class="faq-q-num">P1</span><span class="faq-q-text">Escalation / remediation when output is wrong</span><span class="faq-chevron">▾</span></summary>
+      <div class="faq-body">
+        <p>The analyst is <strong>always the reviewer</strong> — every tool in the L&amp;D program is AI-assisted, not autonomous. The workflow is:</p>
+        <ul>
+          <li>Analyst runs the tool → reviews output before using it</li>
+          <li>If output is wrong → refine prompt and re-run, OR fall back to manual processing</li>
+          <li>If the tool itself is broken → escalate to L&amp;D/Ops (Lerry/Darryl)</li>
+        </ul>
+        <p>Liability for deliverables sits where it always has: <strong>with the analyst and QA</strong>, not the tool. The tools reduce effort; they don't replace oversight. This is repeated explicitly in the prompting and SOP Generator sessions (human-in-the-loop pauses at every phase).</p>
+        <div class="faq-callout"><strong>Note:</strong> the L&amp;D program does not define or escalate to any Incident Report process — IR is outside the scope of what was taught or discussed.</div>
+      </div>
+    </details>
+
+    <details class="faq-item">
+      <summary><span class="faq-q-num">P2</span><span class="faq-q-text">UAT phase with analysts</span><span class="faq-chevron">▾</span></summary>
+      <div class="faq-body">
+        <p>The L&amp;D sessions themselves <strong>are the UAT</strong>. They're structured as:</p>
+        <ul>
+          <li>Team-based, hands-on (not lectures — see <strong>1. Introduction.pptx</strong>)</li>
+          <li>Review-and-critique exercises at the end of each module</li>
+          <li>Rolled out in cohorts (April 13–17, 2026 across EMEA/AU/SG)</li>
+          <li>Feedback actively solicited during and after each session</li>
+        </ul>
+        <p>Adoption is <strong>not mandated top-down</strong> — nothing in the L&amp;D materials mandates exclusive use of any tool. The sessions exist precisely so analysts can test and shape these tools before wider use. Sign-off records are the session attendance + post-session feedback, which the L&amp;D team is collecting.</p>
+      </div>
+    </details>
   </div>
 
 </section>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -988,8 +988,8 @@ pre:hover .copy-btn{opacity:1}
     <a href="#prompts" class="nav-item" data-target="prompts" data-search="Prompt Generation"><span class="nav-num">06</span><span class="nav-label">Prompt Generation</span></a>
     <div class="section-label">RESOURCES</div>
     <a href="#docs" class="nav-item" data-target="docs" data-search="Documentation"><span class="nav-num">07</span><span class="nav-label">Documentation</span></a>
-    <a href="#clickup" class="nav-item" data-target="clickup" data-search="ClickUp"><span class="nav-num">08</span><span class="nav-label">ClickUp</span><span class="nav-badge urgent" data-deadline-badge="2026-04-24"></span></a>
-    <a href="#skilljar" class="nav-item" data-target="skilljar" data-search="Skilljar"><span class="nav-num">09</span><span class="nav-label">Skilljar</span><span class="nav-badge soon" data-deadline-badge="2026-05-04"></span></a>
+    <a href="#clickup" class="nav-item" data-target="clickup" data-search="ClickUp"><span class="nav-num">08</span><span class="nav-label">ClickUp</span><span class="nav-badge urgent" data-deadline-badge="2026-05-07"></span></a>
+    <a href="#skilljar" class="nav-item" data-target="skilljar" data-search="Skilljar"><span class="nav-num">09</span><span class="nav-label">Skilljar</span><span class="nav-badge soon" data-deadline-badge="2026-05-07"></span></a>
     <a href="#sop" class="nav-item" data-target="sop" data-search="SOP Generator"><span class="nav-num">10</span><span class="nav-label">SOP Generator</span><span class="nav-badge soon" data-deadline-badge="2026-05-05"></span></a>
     <a href="#prompt-eng" class="nav-item" data-target="prompt-eng" data-search="Prompt &amp; Context"><span class="nav-num">11</span><span class="nav-label">Prompt &amp; Context</span><span class="nav-badge upcoming" data-deadline-badge="2026-05-18"></span></a>
     <div class="section-label">MEDIA</div>
@@ -1002,7 +1002,7 @@ pre:hover .copy-btn{opacity:1}
     <button class="theme-toggle" id="themeToggleBtn" type="button">
       <span class="theme-toggle-icon sun">☀</span>
       <span class="theme-toggle-icon moon">☾</span>
-      <span class="footer-theme-label" id="themeLabel">Dark mode</span>
+      <span class="footer-theme-label" id="themeLabel">Light mode</span>
     </button>
   </div>
 </aside>
@@ -1125,8 +1125,8 @@ pre:hover .copy-btn{opacity:1}
         </div>
         <span class="deadline-countdown" data-countdown>—</span>
       </a>
-      <a href="#clickup" class="deadline-card" data-deadline="2026-04-24">
-        <div class="deadline-date-block"><div class="deadline-month">Apr</div><div class="deadline-day">24</div></div>
+      <a href="#clickup" class="deadline-card" data-deadline="2026-05-07">
+        <div class="deadline-date-block"><div class="deadline-month">May</div><div class="deadline-day">07</div></div>
         <div class="deadline-body">
           <div class="deadline-title">ClickUp Exercise</div>
           <div class="deadline-desc">Navigation guide + sample space onboarding</div>
@@ -1134,8 +1134,8 @@ pre:hover .copy-btn{opacity:1}
         </div>
         <span class="deadline-countdown" data-countdown>—</span>
       </a>
-      <a href="#skilljar" class="deadline-card" data-deadline="2026-05-04">
-        <div class="deadline-date-block"><div class="deadline-month">May</div><div class="deadline-day">04</div></div>
+      <a href="#skilljar" class="deadline-card" data-deadline="2026-05-07">
+        <div class="deadline-date-block"><div class="deadline-month">May</div><div class="deadline-day">07</div></div>
         <div class="deadline-body">
           <div class="deadline-title">Anthropic Skilljar self-paced training</div>
           <div class="deadline-desc">Account setup + 7 recommended courses</div>
@@ -2543,7 +2543,7 @@ Output: Legal/Regulatory</code></pre>
 (function initTheme(){
   var saved = null;
   try { saved = localStorage.getItem('rdb-hub-theme'); } catch(e){}
-  document.documentElement.setAttribute('data-theme', saved || 'dark');
+  document.documentElement.setAttribute('data-theme', saved || 'light');
   updateThemeLabel();
 })();
 function toggleTheme(){
